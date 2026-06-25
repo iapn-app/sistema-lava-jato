@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BubbleWash - Sistema de Gerenciamento de Lava-Jato</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f3ff',
+              100: '#e1e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts (Outfit) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* Estilos personalizados para transições e rolagem */
+    .view-section {
+      transition: opacity 0.2s ease-in-out;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    /* Efeito Glassmorphism para cards */
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body class="h-full flex overflow-hidden custom-scrollbar">
+
+  <!-- SIDEBAR -->
+  <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-slate-900 border-r border-slate-800">
+    <div class="flex-1 flex flex-col min-h-0">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center h-16 flex-shrink-0 px-6 bg-slate-950 border-b border-slate-800">
+        <svg class="h-8 w-8 text-brand-500 mr-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        </svg>
+        <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-brand-500 to-violet-400 bg-clip-text text-transparent">BubbleWash</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+        <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 bg-brand-600 text-white shadow-lg shadow-brand-500/20">
+          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+          </svg>
+          Painel Inicial
+        </button>
+
+        <button onclick="switchView('vehicles')" id="nav-vehicles" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-100">
+          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+          </svg>
+          Fluxo de Veículos
+        </button>
+
+        <button onclick="switchView('cashflow')" id="nav-cashflow" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-100">
+          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Fluxo de Caixa
+        </button>
+
+        <button onclick="switchView('inventory')" id="nav-inventory" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-100">
+          <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          Estoque Inteligente
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer Info -->
+      <div class="p-4 bg-slate-950 border-t border-slate-800 text-xs text-slate-500">
+        <p class="font-medium text-slate-400">BubbleWash v1.0.0</p>
+        <p>Dados salvos localmente</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MOBILE HEADER AND LAYOUT CONTAINER -->
+  <div class="md:pl-64 flex flex-col flex-1 w-full h-full overflow-hidden">
+    
+    <!-- TOP BAR -->
+    <header class="flex items-center justify-between h-16 px-6 bg-slate-900 border-b border-slate-800 flex-shrink-0 z-10">
+      
+      <!-- Hamburger Menu for Mobile -->
+      <div class="flex items-center md:hidden">
+        <button id="mobile-menu-btn" class="text-slate-400 hover:text-white focus:outline-none">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <!-- Mobile Logo title -->
+        <span class="ml-3 text-lg font-bold bg-gradient-to-r from-brand-500 to-violet-400 bg-clip-text text-transparent">BubbleWash</span>
+      </div>
+
+      <!-- Left Title (Desktop) -->
+      <div class="hidden md:flex flex-col">
+        <h1 id="page-title" class="text-xl font-bold text-slate-100">Painel Inicial</h1>
+        <p id="page-subtitle" class="text-xs text-slate-400">Visão geral do dia de hoje</p>
+      </div>
+
+      <!-- Right Quick Actions -->
+      <div class="flex items-center space-x-3">
+        <!-- Stock Critical Indicator -->
+        <div id="header-stock-alert" class="hidden flex items-center px-3 py-1.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-semibold animate-pulse">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-2"></span>
+          Estoque Crítico!
+        </div>
+
+        <button onclick="openCarModal()" class="flex items-center px-3.5 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition shadow-lg shadow-brand-500/10">
+          <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Adicionar Carro
+        </button>
+
+        <button onclick="openCashModal()" class="hidden md:flex items-center px-3.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg transition">
+          <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Nova Transação
+        </button>
+      </div>
+    </header>
+
+    <!-- MOBILE MENU DRAWER (HIDDEN BY DEFAULT) -->
+    <div id="mobile-menu" class="hidden fixed inset-0 z-40 md:hidden bg-slate-950/80 backdrop-blur-sm">
+      <div class="fixed inset-y-0 left-0 w-64 bg-slate-900 border-r border-slate-800 flex flex-col p-6 shadow-2xl">
+        <div class="flex items-center justify-between mb-8">
+          <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-brand-500 to-violet-400 bg-clip-text text-transparent">BubbleWash</span>
+          <button id="mobile-menu-close" class="text-slate-400 hover:text-white">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <nav class="space-y-3">
+          <button onclick="switchView('dashboard'); closeMobileMenu()" class="mobile-nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl bg-brand-600 text-white">Painel Inicial</button>
+          <button onclick="switchView('vehicles'); closeMobileMenu()" class="mobile-nav-btn w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-slate-100 rounded-xl">Fluxo de Veículos</button>
+          <button onclick="switchView('cashflow'); closeMobileMenu()" class="mobile-nav-btn w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-slate-100 rounded-xl">Fluxo de Caixa</button>
+          <button onclick="switchView('inventory'); closeMobileMenu()" class="mobile-nav-btn w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-slate-100 rounded-xl">Estoque Inteligente</button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- MAIN SCROLLABLE CONTENT BODY -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-slate-950">
+      
+      <!-- ============================================== -->
+      <!-- VIEW 1: PAINEL INICIAL (DASHBOARD) -->
+      <!-- ============================================== -->
+      <section id="view-dashboard" class="view-section space-y-6">
+        
+        <!-- Metrics Bar -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: Revenue -->
+          <div class="glass-card rounded-2xl p-5 flex items-center justify-between">
+            <div class="space-y-1">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Receita Hoje</p>
+              <h3 id="dash-stat-revenue" class="text-2xl font-bold text-emerald-400">R$ 0,00</h3>
+            </div>
+            <div class="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+              <svg class="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <!-- Card 2: In Queue -->
+          <div class="glass-card rounded-2xl p-5 flex items-center justify-between">
+            <div class="space-y-1">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Na Fila</p>
+              <h3 id="dash-stat-queue" class="text-2xl font-bold text-slate-100">0</h3>
+            </div>
+            <div class="p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
+              <svg class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <!-- Card 3: Washing -->
+          <div class="glass-card rounded-2xl p-5 flex items-center justify-between">
+            <div class="space-y-1">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Lavando</p>
+              <h3 id="dash-stat-washing" class="text-2xl font-bold text-amber-400">0</h3>
+            </div>
+            <div class="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20 animate-pulse">
+              <svg class="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+            </div>
+          </div>
+          <!-- Card 4: Inventory Alert -->
+          <div class="glass-card rounded-2xl p-5 flex items-center justify-between">
+            <div class="space-y-1">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Alerta de Insumos</p>
+              <h3 id="dash-stat-stock" class="text-2xl font-bold text-slate-100">Sem Alertas</h3>
+            </div>
+            <div id="dash-stat-stock-container" class="p-3 bg-slate-500/10 rounded-xl border border-slate-500/20">
+              <svg id="dash-stat-stock-icon" class="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kanban Flow Board -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-slate-100 flex items-center">
+              <svg class="h-5 w-5 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Fluxo Operacional de Carros
+            </h2>
+            <span class="text-xs text-indigo-400 bg-brand-500/10 border border-brand-500/20 px-2.5 py-1 rounded-full font-semibold">Atualização em tempo real</span>
+          </div>
+
+          <!-- Kanban Columns -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Coluna: Na Fila -->
+            <div class="flex flex-col bg-slate-900/60 border border-slate-800 rounded-2xl p-4 min-h-[500px]">
+              <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                  <h3 class="font-bold text-slate-200">Na Fila</h3>
+                </div>
+                <span id="badge-count-fila" class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold">0</span>
+              </div>
+              
+              <!-- Cards Container -->
+              <div id="col-fila" class="space-y-3 flex-1 overflow-y-auto max-h-[600px] custom-scrollbar pb-6">
+                <!-- Dinamicamente preenchido -->
+              </div>
+            </div>
+
+            <!-- Coluna: Lavando -->
+            <div class="flex flex-col bg-slate-900/60 border border-slate-800 rounded-2xl p-4 min-h-[500px]">
+              <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-500 absolute"></span>
+                  <h3 class="font-bold text-slate-200 pl-2">Lavando</h3>
+                </div>
+                <span id="badge-count-lavando" class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">0</span>
+              </div>
+
+              <!-- Cards Container -->
+              <div id="col-lavando" class="space-y-3 flex-1 overflow-y-auto max-h-[600px] custom-scrollbar pb-6">
+                <!-- Dinamicamente preenchido -->
+              </div>
+            </div>
+
+            <!-- Coluna: Concluído -->
+            <div class="flex flex-col bg-slate-900/60 border border-slate-800 rounded-2xl p-4 min-h-[500px]">
+              <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                  <h3 class="font-bold text-slate-200">Concluído</h3>
+                </div>
+                <span id="badge-count-concluido" class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">0</span>
+              </div>
+
+              <!-- Cards Container -->
+              <div id="col-concluido" class="space-y-3 flex-1 overflow-y-auto max-h-[600px] custom-scrollbar pb-6">
+                <!-- Dinamicamente preenchido -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 2: FLUXO DE VEÍCULOS (TABELA & FILTROS) -->
+      <!-- ============================================== -->
+      <section id="view-vehicles" class="view-section hidden space-y-6">
+        
+        <!-- Header & Action Panel -->
+        <div class="glass-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="p-3 bg-brand-500/10 rounded-xl text-brand-400 border border-brand-500/20">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold">Gerenciamento da Fila</h2>
+              <p class="text-xs text-slate-400">Gerencie todos os veículos ativos e históricos do lava-jato</p>
+            </div>
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Filtro de Status -->
+            <select id="filter-vehicle-status" onchange="renderVehiclesList()" class="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-xl px-4 py-2 focus:ring-brand-500 focus:border-brand-500">
+              <option value="todos">Todos Status</option>
+              <option value="Na Fila">Na Fila</option>
+              <option value="Lavando">Lavando</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Entregue">Entregue</option>
+            </select>
+
+            <button onclick="openCarModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition">
+              Novo Veículo
+            </button>
+          </div>
+        </div>
+
+        <!-- Veículos Table Container -->
+        <div class="glass-card rounded-2xl overflow-hidden border border-slate-800">
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-sm text-left text-slate-300">
+              <thead class="text-xs uppercase bg-slate-900/80 text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th scope="col" class="px-6 py-4">Veículo</th>
+                  <th scope="col" class="px-6 py-4">Proprietário</th>
+                  <th scope="col" class="px-6 py-4">Serviço / Preço</th>
+                  <th scope="col" class="px-6 py-4">Status</th>
+                  <th scope="col" class="px-6 py-4">Data Registro</th>
+                  <th scope="col" class="px-6 py-4 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="vehicles-table-body" class="divide-y divide-slate-800/50">
+                <!-- Dinamicamente preenchido -->
+              </tbody>
+            </table>
+          </div>
+          <!-- Empty State -->
+          <div id="vehicles-empty-state" class="hidden flex flex-col items-center justify-center p-12 text-center">
+            <svg class="h-12 w-12 text-slate-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <p class="text-slate-400 font-medium">Nenhum veículo encontrado com esse filtro.</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 3: FLUXO DE CAIXA (FINANCEIRO) -->
+      <!-- ============================================== -->
+      <section id="view-cashflow" class="view-section hidden space-y-6">
+        
+        <!-- Cash Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Saldo Atual -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-brand-500">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Saldo em Caixa</p>
+            <h3 id="cash-stat-total-balance" class="text-2xl font-black text-slate-100 mt-1">R$ 0,00</h3>
+            <p class="text-[10px] text-slate-400 mt-2">Diferença entre receitas e despesas efetuadas</p>
+          </div>
+          <!-- A Receber -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-emerald-500">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Receitas</p>
+            <h3 id="cash-stat-total-income" class="text-2xl font-black text-emerald-400 mt-1">R$ 0,00</h3>
+            <div class="flex items-center space-x-2 mt-2 text-[10px] text-slate-400">
+              <span id="cash-stat-pending-income" class="text-emerald-500 font-bold">R$ 0,00 pendente</span>
+            </div>
+          </div>
+          <!-- A Pagar -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-rose-500">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Despesas</p>
+            <h3 id="cash-stat-total-expense" class="text-2xl font-black text-rose-400 mt-1">R$ 0,00</h3>
+            <div class="flex items-center space-x-2 mt-2 text-[10px] text-slate-400">
+              <span id="cash-stat-pending-expense" class="text-rose-500 font-bold">R$ 0,00 pendente</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Add Transaction Bar -->
+        <div class="glass-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold">Lançamentos Financeiros</h2>
+              <p class="text-xs text-slate-400">Gerenciamento de contas a pagar e receber do lava-jato</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Filter Type -->
+            <select id="filter-cash-type" onchange="renderCashFlowList()" class="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-xl px-4 py-2 focus:ring-brand-500 focus:border-brand-500">
+              <option value="todos">Todos Lançamentos</option>
+              <option value="Receita">Receitas (Entradas)</option>
+              <option value="Despesa">Despesas (Saídas)</option>
+              <option value="Pendente">Pendentes</option>
+              <option value="Confirmado">Pagos/Recebidos</option>
+            </select>
+
+            <button onclick="openCashModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition">
+              Nova Transação
+            </button>
+          </div>
+        </div>
+
+        <!-- Cash Flow Table -->
+        <div class="glass-card rounded-2xl overflow-hidden border border-slate-800">
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-sm text-left text-slate-300">
+              <thead class="text-xs uppercase bg-slate-900/80 text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th scope="col" class="px-6 py-4">Descrição</th>
+                  <th scope="col" class="px-6 py-4">Categoria</th>
+                  <th scope="col" class="px-6 py-4">Data</th>
+                  <th scope="col" class="px-6 py-4">Tipo</th>
+                  <th scope="col" class="px-6 py-4">Valor</th>
+                  <th scope="col" class="px-6 py-4">Status</th>
+                  <th scope="col" class="px-6 py-4 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="cashflow-table-body" class="divide-y divide-slate-800/50">
+                <!-- Dinamicamente preenchido -->
+              </tbody>
+            </table>
+          </div>
+          <!-- Empty State -->
+          <div id="cashflow-empty-state" class="hidden flex flex-col items-center justify-center p-12 text-center">
+            <svg class="h-12 w-12 text-slate-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+            </svg>
+            <p class="text-slate-400 font-medium">Nenhum lançamento financeiro registrado.</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 4: CONTROLE DE ESTOQUE INTELIGENTE -->
+      <!-- ============================================== -->
+      <section id="view-inventory" class="view-section hidden space-y-6">
+        
+        <!-- Inventory Alert Header Card -->
+        <div id="inventory-critical-banner" class="hidden bg-gradient-to-r from-rose-900/60 to-red-800/40 border border-rose-700/30 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="p-2.5 bg-rose-500/20 rounded-xl text-rose-400 border border-rose-500/30 animate-pulse">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-rose-200 text-sm md:text-base">Atenção: Insumos Próximos do Fim</h3>
+              <p class="text-xs text-rose-300/80">Existem materiais cujo estoque estimado dura menos do que 5 dias. Compre antes de acabar!</p>
+            </div>
+          </div>
+          <button onclick="switchView('inventory')" class="px-3.5 py-1.5 bg-rose-950/80 border border-rose-700 text-rose-300 text-xs font-semibold rounded-lg hover:bg-rose-900/50 transition">
+            Ver Alertas Abaixo
+          </button>
+        </div>
+
+        <!-- Inventory Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Total Itens -->
+          <div class="glass-card rounded-2xl p-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total de Itens</p>
+            <h3 id="inventory-stat-total-items" class="text-2xl font-bold mt-1 text-slate-100">0</h3>
+            <p class="text-xs text-slate-400 mt-1">Materiais cadastrados no estoque</p>
+          </div>
+          <!-- Itens Críticos -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-rose-500">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Materiais Acabando (&lt; 5 dias)</p>
+            <h3 id="inventory-stat-critical-items" class="text-2xl font-bold text-rose-400 mt-1">0</h3>
+            <p class="text-xs text-slate-400 mt-1">Necessitam reposição imediata</p>
+          </div>
+          <!-- Consumo Diário -->
+          <div class="glass-card rounded-2xl p-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Média de Consumo Geral</p>
+            <h3 class="text-2xl font-bold mt-1 text-blue-400">Automatizada</h3>
+            <p class="text-xs text-slate-400 mt-1">Estimativa com base em consumo diário</p>
+          </div>
+        </div>
+
+        <!-- Stock Actions and Controls -->
+        <div class="glass-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="p-3 bg-brand-500/10 rounded-xl text-brand-400 border border-brand-500/20">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold">Insumos & Produtos</h2>
+              <p class="text-xs text-slate-400">Controle inteligente e projeção de consumo de produtos</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Filter Stock Status -->
+            <select id="filter-inventory-status" onchange="renderInventoryList()" class="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-xl px-4 py-2 focus:ring-brand-500 focus:border-brand-500">
+              <option value="todos">Todos Materiais</option>
+              <option value="critico">Material Acabando</option>
+              <option value="ok">Estoque Seguro (&gt;= 5 dias)</option>
+            </select>
+
+            <button onclick="openInventoryModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition">
+              Novo Produto
+            </button>
+          </div>
+        </div>
+
+        <!-- Inventory List / Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="inventory-grid">
+          <!-- Cards de produtos serão renderizados aqui -->
+        </div>
+
+        <!-- Empty State Estoque -->
+        <div id="inventory-empty-state" class="hidden glass-card rounded-2xl flex flex-col items-center justify-center p-12 text-center">
+          <svg class="h-12 w-12 text-slate-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <p class="text-slate-400 font-medium">Nenhum produto cadastrado no estoque.</p>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: CADASTRAR/EDITAR VEÍCULO -->
+  <!-- ============================================== -->
+  <div id="modal-car" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl transition-all border border-slate-700/50">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <h3 id="modal-car-title" class="text-lg font-bold text-slate-100">Adicionar Veículo à Fila</h3>
+        <button onclick="closeCarModal()" class="text-slate-400 hover:text-white transition focus:outline-none">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Form) -->
+      <form id="form-car" onsubmit="saveCar(event)" class="p-6 space-y-4">
+        <input type="hidden" id="car-id">
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="car-model" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Modelo do Carro</label>
+            <input type="text" id="car-model" required placeholder="Ex: Corolla, Civic" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none">
+          </div>
+          <div>
+            <label for="car-plate" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Placa do Veículo</label>
+            <input type="text" id="car-plate" required placeholder="ABC1D23" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none uppercase">
+          </div>
+        </div>
+
+        <div>
+          <label for="car-owner" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Nome do Cliente (Proprietário)</label>
+          <input type="text" id="car-owner" required placeholder="Ex: João Silva" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="car-service" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Serviço Solicitado</label>
+            <select id="car-service" required onchange="autoFillPrice()" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none">
+              <option value="Ducha Simples">Ducha Simples</option>
+              <option value="Lavagem Completa">Lavagem Completa</option>
+              <option value="Lavagem & Cera">Lavagem & Cera</option>
+              <option value="Polimento & Higienização">Polimento & Higienização</option>
+            </select>
+          </div>
+          <div>
+            <label for="car-price" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Valor Cobrado (R$)</label>
+            <input type="number" step="0.01" id="car-price" required placeholder="Ex: 50.00" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label for="car-status" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Status Inicial</label>
+          <select id="car-status" required class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none">
+            <option value="Na Fila">Na Fila</option>
+            <option value="Lavando">Lavando</option>
+            <option value="Concluído">Concluído</option>
+          </select>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+          <button type="button" onclick="closeCarModal()" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200 transition focus:outline-none">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-brand-500/20 transition">Salvar Veículo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: CADASTRAR/EDITAR LANÇAMENTO FINANCEIRO -->
+  <!-- ============================================== -->
+  <div id="modal-cash" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl transition-all border border-slate-700/50">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <h3 id="modal-cash-title" class="text-lg font-bold text-slate-100">Nova Transação Financeira</h3>
+        <button onclick="closeCashModal()" class="text-slate-400 hover:text-white transition focus:outline-none">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Form) -->
+      <form id="form-cash" onsubmit="saveCashTransaction(event)" class="p-6 space-y-4">
+        <input type="hidden" id="cash-id">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tipo de Fluxo</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center justify-center py-2.5 rounded-xl border border-slate-700 bg-slate-850 cursor-pointer text-slate-300 font-semibold text-sm hover:bg-slate-800 focus-within:ring-2 focus-within:ring-brand-500">
+                <input type="radio" name="cash-type" value="Receita" required checked class="sr-only">
+                <span class="dot-income text-emerald-400 flex items-center">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2"></span>
+                  Receita
+                </span>
+              </label>
+              <label class="flex items-center justify-center py-2.5 rounded-xl border border-slate-700 bg-slate-850 cursor-pointer text-slate-300 font-semibold text-sm hover:bg-slate-800 focus-within:ring-2 focus-within:ring-brand-500">
+                <input type="radio" name="cash-type" value="Despesa" required class="sr-only">
+                <span class="dot-expense text-slate-400 flex items-center">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400 mr-2"></span>
+                  Despesa
+                </span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label for="cash-status" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Status do Pagamento</label>
+            <select id="cash-status" required class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none">
+              <option value="Confirmado">Confirmado / Pago</option>
+              <option value="Pendente">Pendente</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="cash-description" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Descrição do Lançamento</label>
+          <input type="text" id="cash-description" required placeholder="Ex: Lavagem Corolla Placa ABC, Compra de Detergente" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="cash-value" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Valor (R$)</label>
+            <input type="number" step="0.01" id="cash-value" required placeholder="0.00" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none">
+          </div>
+          <div>
+            <label for="cash-date" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Data do Lançamento</label>
+            <input type="date" id="cash-date" required class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-250 focus:ring-2 focus:ring-brand-500 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label for="cash-category" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Categoria</label>
+          <select id="cash-category" required class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none">
+            <option value="Serviços">Serviços (Lava-Jato)</option>
+            <option value="Insumos">Compra de Insumos</option>
+            <option value="Infraestrutura">Água/Luz/Aluguel</option>
+            <option value="Funcionários">Comissão/Salário</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+          <button type="button" onclick="closeCashModal()" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200 transition focus:outline-none">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-brand-500/20 transition">Salvar Lançamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: CADASTRAR/EDITAR INSUMO NO ESTOQUE -->
+  <!-- ============================================== -->
+  <div id="modal-inventory" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl transition-all border border-slate-700/50">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <h3 id="modal-inventory-title" class="text-lg font-bold text-slate-100">Cadastrar Produto / Insumo</h3>
+        <button onclick="closeInventoryModal()" class="text-slate-400 hover:text-white transition focus:outline-none">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Form) -->
+      <form id="form-inventory" onsubmit="saveInventoryItem(event)" class="p-6 space-y-4">
+        <input type="hidden" id="inventory-id">
+
+        <div>
+          <label for="inventory-name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Nome do Produto</label>
+          <input type="text" id="inventory-name" required placeholder="Ex: Shampoo Automotivo Neutro, Cera de Carnaúba" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none">
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div class="col-span-2">
+            <label for="inventory-quantity" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Quantidade Atual</label>
+            <input type="number" step="0.01" id="inventory-quantity" required placeholder="Ex: 15" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none">
+          </div>
+          <div>
+            <label for="inventory-unit" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Unidade</label>
+            <select id="inventory-unit" required class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none">
+              <option value="Litros">Litros (L)</option>
+              <option value="Unidades">Unidades (un)</option>
+              <option value="Kg">Quilos (Kg)</option>
+              <option value="Pacotes">Pacotes (pct)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="inventory-consumption" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Consumo Médio Diário</label>
+          <div class="relative">
+            <input type="number" step="0.01" id="inventory-consumption" required placeholder="Ex: 1.5" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none pr-28">
+            <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-xs text-slate-400 uppercase">
+              Por Dia
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-1">Calculado dinamicamente para estimar a autonomia em dias. Se a projeção for &lt; 5 dias, um alerta será disparado.</p>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+          <button type="button" onclick="closeInventoryModal()" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-slate-200 transition focus:outline-none">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-brand-500/20 transition">Salvar Produto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+  <!-- Main Behavior JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
